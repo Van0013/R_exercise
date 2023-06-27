@@ -1,0 +1,41 @@
+zong'xaing'can'shuzongxaingcanshurm(list = ls())
+library(pheatmap)
+library(psych)
+library(stringr)
+
+# otu <- read.table("data2.txt",comment.char="",row.names=1,check.names=F,stringsAsFactors=F, header = TRUE, sep = "\t")
+# otu<- t(otu)
+# env<-read.table("env2.txt",sep="\t",na.strings="",header = T,row.names=1,comment.char = "",check.names = F,stringsAsFactors = F)
+# rowname_of_env<-rownames(env)
+# rowname_of_otu<-rownames(otu)
+# otu<-otu[match(rownames(env),rownames(otu)), ]
+
+merged_table<-read.table(file = "文件名", sep = "\t", header = T)
+
+merged_table=as.data.frame(lapply(merged_table,as.numeric))
+
+correlation_results<-corr.test(merged_table,method ="spearman",adjust="fdr")
+
+r<-correlation_results$r
+p<-correlation_results$p
+
+r<-r[-c(1:4),-c(5:20)] #前面为横向参数，后面为纵向参数
+p<-p[-c(1:4),-c(5:20)] #前面为横向参数，后面为纵向参数
+
+# selected_position_of_species<-head(order(colSums(t(p)<0.05),decreasing =T),40)
+# r<-r[selected_position_of_species,]
+# p<-p[selected_position_of_species,]
+
+sig_label<-function(x){ifelse(x<0.001,"***",ifelse(x<0.01,"**",ifelse(x<0.05,"*","")))}
+
+sig_matrix<-sig_label(p)
+
+mycol<-colorRampPalette(c("#20a4b2","#f9f7f7","#ff0000"))(800)
+
+pheatmap(r,fontsize=15,border_color = "black",number_color ="white" ,
+         display_numbers = sig_matrix,fontsize_row =12,fontsize_col = 12,
+         fontsize_number = 18,
+         cluster_rows=F,cluster_cols=FALSE,cellwidth=20,cellheight=20,color=mycol)
+
+write.table(r,file = "自定义文件名1.txt",sep ="\t")
+write.table(p,file = "自定义文件名2.txt",sep ="\t")
